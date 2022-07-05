@@ -1,4 +1,5 @@
-﻿using Data.Entities;
+﻿using Business.Models;
+using Data.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -19,22 +20,18 @@ namespace WebApi.Controllers
     {
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<User> _userManager;
-        private string _userId => (User.Claims.Single(c => c.Type == ClaimTypes.NameIdentifier).Value).ToString();
+        private readonly string[] _baseRoles;
         public RolesController(RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _baseRoles = new string[] { "Admin", "User", "BannedUser" };
         }
 
         // GET: api/roles
         [HttpGet]
         public async Task<ActionResult> Index()
         {
-            var user = await _userManager.FindByIdAsync(_userId);
-            var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains("Admin"))
-                return Unauthorized();
-
             return Ok(await _roleManager.Roles.ToListAsync());
         }
         //GET: api/roles/1
@@ -74,6 +71,13 @@ namespace WebApi.Controllers
             {
                 return BadRequest();
             }
+
+            string [] baseRolesIds = new string [] { };
+            foreach (var name in _baseRoles)            
+                baseRolesIds.Append((await _roleManager.FindByNameAsync(name)).Id);
+            if (baseRolesIds.Contains(value.Id))
+                return Forbid();
+
             try
             {
                 await _roleManager.UpdateAsync(value);
@@ -92,7 +96,10 @@ namespace WebApi.Controllers
             try
             {
                 role = await _roleManager.FindByIdAsync(id);
-                await _roleManager.DeleteAsync(role);                    
+                if (_baseRoles.Contains(role.Name))
+                    return Forbid();
+
+                    await _roleManager.DeleteAsync(role);                    
             }
             catch (Exception e)
             {

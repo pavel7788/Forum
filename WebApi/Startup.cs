@@ -10,8 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,22 +38,37 @@ namespace WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("Forum");
-            services.AddDbContext<ForumDbContext>(options => options.UseSqlServer(connectionString));            
+            services.AddDbContext<ForumDbContext>(options => options.UseSqlServer(connectionString));
 
-            services.AddControllers();
-            services.AddControllers().AddNewtonsoftJson(options =>
-                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-            );  
+            //services.AddCors((setup) =>
+            //{
+            //    setup.AddPolicy("default", (options) =>
+            //    {
+            //        options.AllowAnyMethod()
+            //        .AllowAnyHeader()
+            //        .AllowAnyOrigin();
+            //    });
+            //});
 
-            services.AddSwaggerGen();
-
-            services.AddCors((setup) =>
+            services.AddCors(options =>
             {
-                setup.AddPolicy("default", (options) =>
-                {
-                    options.AllowAnyHeader().AllowAnyOrigin();
-                });
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.AllowAnyOrigin()
+                            .AllowAnyMethod()
+                            .AllowAnyHeader();
+                    });
             });
+
+            //services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.Objects;
+            }) ;
+         
+            services.AddSwaggerGen();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -66,12 +79,12 @@ namespace WebApi
             services.AddScoped<ICommentService, CommentService>();
 
             //services.AddIdentity<User, IdentityRole>()
-                //.AddEntityFrameworkStores<ForumDbContext>();
+            //    .AddEntityFrameworkStores<ForumDbContext>();
 
             services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ForumDbContext>()
-                .AddDefaultTokenProviders();           
+                .AddDefaultTokenProviders();
 
             var authOptionsConfiguration = Configuration.GetSection("Auth");
             services.Configure<AuthOptions>(authOptionsConfiguration);
@@ -97,20 +110,6 @@ namespace WebApi
                     };
 
                 });
-
-            services.AddCors(options =>
-            {
-                options.AddDefaultPolicy(
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                            .AllowAnyMethod()
-                            .AllowAnyHeader();
-                    });
-            });
-
-            
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -131,6 +130,7 @@ namespace WebApi
                 );
             }
 
+            //app.UseCors("default");
             app.UseCors(x => x
                .AllowAnyOrigin()
                .AllowAnyMethod()
@@ -152,12 +152,14 @@ namespace WebApi
             var connectionString = Configuration.GetConnectionString("Forum");
             InitRoles(serviceProvider).Wait();
             CreateAdmin(serviceProvider).Wait();
+            CreateTestUsers(serviceProvider).Wait();
+            FillDbWithTestData(serviceProvider, connectionString).Wait();
         }       
 
         private async static Task InitRoles(IServiceProvider serviceProvider)
         {
             var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "Admin", "User", "Moderator" };
+            string[] roleNames = { "Admin", "User", "Moderator", "BannedUser" };
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)
@@ -186,6 +188,82 @@ namespace WebApi
                     await UserManager.AddToRoleAsync(admin, "Admin");
             }
         }
-       
+
+        private static async Task CreateTestUsers(IServiceProvider serviceProvider)
+        {
+            var UserManager = serviceProvider.GetRequiredService<UserManager<User>>();
+            string[] userNames = { "serg@gmail.com", "igor@gmail.com", "anna@gmail.com", "alex@gmail.com", "max@gmail.com" };
+            string userPassw = "Qwerty@123";
+            foreach (var item in userNames)
+            {
+                var checkUser = await UserManager.FindByNameAsync(item);
+                if (checkUser == null)
+                {
+                    checkUser = new User()
+                    {
+                        UserName = item,
+                        Email = item
+                    };
+                    var createdUser = await UserManager.CreateAsync(checkUser, userPassw);
+                    if (createdUser.Succeeded)
+                        await UserManager.AddToRoleAsync(checkUser, "User");
+                }
+            }
+        }
+        static async Task FillDbWithTestData(IServiceProvider serviceProvider, string connectionString)
+        {
+            ForumDbContext context = new ForumDbContext();
+
+            if (context.Posts.Count() == 0)
+            {
+                var UserManager = serviceProvider.GetRequiredService<UserManager<User>>();
+                string[] userNames = { "serg@gmail.com", "igor@gmail.com", "anna@gmail.com", "alex@gmail.com", "max@gmail.com" };
+                var serg = await UserManager.FindByNameAsync(userNames[0]);
+                var sergId = serg.Id;
+                var igor = await UserManager.FindByNameAsync(userNames[1]);
+                var igorId = igor.Id;
+                var anna = await UserManager.FindByNameAsync(userNames[2]);
+                var annaId = anna.Id;
+                var alex = await UserManager.FindByNameAsync(userNames[3]);
+                var alexId = alex.Id;
+                var max = await UserManager.FindByNameAsync(userNames[4]);
+                var maxId = max.Id;
+
+                SqlConnection connection = new SqlConnection(connectionString);
+                connection.Open();
+
+                string lorum = "Lorem ipsum dolor sit, amet consectetur adipisicing elit." +
+                    "Sapiente numquam eveniet enim exercitationem saepe pariatur cupiditate" +
+                    "magni quibusdam repellat at rem, minima rerum omnis dolor veritatis architecto ullam? Accusantium, eaque." +
+                    "Lorem ipsum dolor sit, amet consectetur adipisicing elit" +
+                    "Sapiente numquam eveniet enim exercitationem saepe pariatur cupiditate " +
+                    "magni quibusdam repellat at rem, minima rerum omnis dolor veritatis architecto ullam? Accusantium, eaque.";
+
+                string strCommand = "insert into Posts(Title, Summary, Content, PublishDate, UserId) values " +
+                    $"(N'CRV', N'Incredible car', '{lorum}', N'2020-09-7 00:12:00', '{sergId}')," +
+                    $"(N'Tucson', N'Corea rules', '{lorum}', N'2022-05-7 00:12:00', '{sergId}')," +
+                    $"(N'RAV4', N'What a car!', '{lorum}', N'2022-06-7 00:12:00', '{igorId}')," +
+                    $"(N'X5', N'Epxensive one', '{lorum}', N'2022-06-3 00:12:00', '{igorId}')," +
+                    $"(N'Forrester', N'Impressive', '{lorum}', N'2022-06-2 00:12:00', '{annaId}')";
+                SqlCommand command = new SqlCommand(strCommand, connection);
+                command.ExecuteNonQuery();
+
+                strCommand = "insert into Comments(Content, PublishDate, UserId, PostId) values " +
+                    $"(N'Agree', N'2021-09-7 00:12:00', '{maxId}', 1)," +
+                    $"(N'Disagree', N'2021-09-7 00:12:00', '{alexId}', 1)," +
+                    $"(N'Could be', N'2021-09-7 00:12:00', '{annaId}', 1)," +
+                    $"(N'Agree2', N'2021-09-7 00:12:00', '{maxId}', 2)," +
+                    $"(N'Disagree2', N'2021-09-7 00:12:00', '{alexId}', 2)," +
+                    $"(N'Could be2', N'2021-09-7 00:12:00', '{annaId}', 2)," +
+                    $"(N'Agree3', N'2021-09-7 00:12:00', '{maxId}', 3)," +
+                    $"(N'Disagree3', N'2021-09-7 00:12:00', '{alexId}', 3)," +
+                    $"(N'Could be3', N'2021-09-7 00:12:00', '{annaId}', 3)";
+                command = new SqlCommand(strCommand, connection);
+                command.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
+
     }
 }

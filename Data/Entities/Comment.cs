@@ -12,9 +12,9 @@ namespace Data.Entities
         public int Id { get; set; }
         [Required]
         [MaxLength(512)]
-        [Display(Name = "Comment Text")]
-        public string Info { get; set; }
-        public DateTime Date { get; set; }
+        [Display(Name = "Comment Content")]
+        public string Content { get; set; }
+        public DateTime PublishDate { get; set; }
         public int PostId { get; set; }
         public virtual Post Post { get; set; }
         public string UserId { get; set; }

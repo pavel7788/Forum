@@ -27,11 +27,11 @@ namespace Business.Services
             {
                 throw new ForumException("Invalid comment model");
             }
-            if (string.IsNullOrEmpty(model.Info))
+            if (string.IsNullOrEmpty(model.Content))
             {
                 throw new ForumException("Comment can not be empty or null.");
             }
-            model.Date = DateTime.Now;
+            model.PublishDate = DateTime.Now;
             var item = _mapper.Map<CommentModel, Comment>(model);
             await _uow.CommentRepository.AddAsync(item);
             await _uow.SaveAsync();
@@ -61,11 +61,11 @@ namespace Business.Services
             {
                 throw new ForumException("Invalid comment model");
             }
-            if (string.IsNullOrEmpty(model.Info))
+            if (string.IsNullOrEmpty(model.Content))
             {
                 throw new ForumException("Comment can not be empty or null.");
             }
-            model.Date = DateTime.Now;
+            model.PublishDate = DateTime.Now;
             _uow.CommentRepository.Update(_mapper.Map<Comment>(model));
             await _uow.SaveAsync();
         }

@@ -20,6 +20,7 @@ namespace WebApi.Controllers
         private readonly IUserService _userService;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<User> _userManager;
+        private int AdminCount {get=>GetAdminCount().Result;}
         public UsersController(IUserService userService, RoleManager<IdentityRole> roleManager, UserManager<User> userManager)
         {
             _userService = userService;
@@ -40,6 +41,7 @@ namespace WebApi.Controllers
         {
             try
             {
+                //выдает ошибку циклической ссылки так
                 await _userService.GetByIdWithDetailsAsync(id);
                 //await _userManager.FindByIdAsync(id);
             }
@@ -90,6 +92,11 @@ namespace WebApi.Controllers
             try
             {
                 user = await _userManager.FindByIdAsync(id);
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (userRoles.Contains("Admin") && AdminCount == 1)
+                    return Forbid();
+
                 await _userService.DeleteCommentsByUserIdAsync(id);
                 await _userManager.DeleteAsync(user);
             }
@@ -99,8 +106,22 @@ namespace WebApi.Controllers
             }
             return Ok(await _userManager.DeleteAsync(user));
         }
-
-
+        // GET: api/users/1/roles
+        [HttpGet("{id}/roles")]
+        public async Task<ActionResult> GetRolesByUserIdAsync(string id)
+        {
+            User user;
+            try
+            {
+                user = await _userManager.FindByIdAsync(id);
+                var userRoles = await _userManager.GetRolesAsync(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Ok(await _userManager.GetRolesAsync(user));
+        }
 
         // GET: api/users/1/posts
         [HttpGet("{id}/posts")]
@@ -114,6 +135,17 @@ namespace WebApi.Controllers
         public async Task<ActionResult<IEnumerable<CommentModel>>> GetCommentsWithDetailsInUserPostAsync(string userId, int postId)
         {
             return Ok(await _userService.GetCommentsWithDetailsInUserPostAsync(userId, postId));
+        }
+
+
+
+        private async Task<int> GetAdminCount ()
+        {
+            int c = 0;
+            foreach (var user in _userManager.Users)
+                if ((await _userManager.GetRolesAsync(user)).Contains("Admin"))
+                    c++;
+            return c;
         }
     }
 }

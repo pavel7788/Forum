@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+﻿    using AutoMapper;
 using Business.Interfaces;
 using Business.Models;
 using Business.Validation;
@@ -32,11 +32,15 @@ namespace Business.Services
             {
                 throw new ForumException("Post title can not be empty or null.");
             }
-            if (string.IsNullOrEmpty(model.Info))
+            if (string.IsNullOrEmpty(model.Summary))
+            {
+                throw new ForumException("Post title can not be empty or null.");
+            }
+            if (string.IsNullOrEmpty(model.Content))
             {
                 throw new ForumException("Post info can not be empty or null.");
             }         
-            model.Date = DateTime.Now;
+            model.PublishDate = DateTime.Now;
             var item = _mapper.Map<PostModel, Post>(model);
             await _uow.PostRepository.AddAsync(item);
             await _uow.SaveAsync();
@@ -69,11 +73,15 @@ namespace Business.Services
             {
                 throw new ForumException("Post title can not be empty or null.");
             }
-            if (string.IsNullOrEmpty(model.Info))
+            if (string.IsNullOrEmpty(model.Summary))
+            {
+                throw new ForumException("Post title can not be empty or null.");
+            }
+            if (string.IsNullOrEmpty(model.Content))
             {
                 throw new ForumException("Post info can not be empty or null.");
             }          
-            model.Date = DateTime.Now;
+            model.PublishDate = DateTime.Now;
             _uow.PostRepository.Update(_mapper.Map<Post>(model));
             await _uow.SaveAsync();
         }

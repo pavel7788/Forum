@@ -15,11 +15,14 @@ namespace Data.Entities
         [Display(Name = "Post Title")]
         public string Title { get; set; }
         [Required]
+        [MaxLength(100)]
+        [Display(Name = "Post Summary")]
+        public string Summary { get; set; }
+        [Required]
         [MaxLength(1000)]
-        [Display(Name = "Post Info")]
-        public string Info { get; set; }
-        public string PhotoPath { get; set; }
-        public DateTime Date { get; set; }
+        [Display(Name = "Post Content")]
+        public string Content { get; set; }
+        public DateTime PublishDate { get; set; }
         public string UserId { get; set; }
         public virtual User User { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }

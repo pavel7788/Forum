@@ -5,9 +5,11 @@ using Business.Models;
 using Data.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -43,19 +45,22 @@ namespace WebApi.Controllers
                 if (!await _userManager.CheckPasswordAsync(user, request.Password))
                     return Unauthorized();
 
+                var roles = await _userManager.GetRolesAsync(user);
+
                 var token = await GenerateJWT(user);
 
                 return Ok(new
                 {
                     access_token = token,
-                    //id = user.Id,
-                    //email = user.Email
+                    id = user.Id,
+                    email = user.Email,
+                    role = roles[0]
                 });
             }
             return Unauthorized();
         }
 
-        // POST: api/auth/login
+        // POST: api/auth/register
         [Route("register")]
         [HttpPost]
         public async Task<ActionResult> Register ([FromBody] Login request)
@@ -82,7 +87,40 @@ namespace WebApi.Controllers
             return Ok();
         }
 
+        // POST: api/auth/profile/change_password
+        [Route("auth/profile/{id}")]
+        [HttpPut]
+        public async Task<ActionResult> ChangePassword(string id, [FromBody] ChangePasswordModel cpm)
+        {
 
+            if (cpm.NewPassword != cpm.ConfirmPassword)
+                return BadRequest();    
+
+            try
+            {
+                var user = await _userManager.FindByIdAsync(id);
+
+                var _passwordValidator = 
+                    HttpContext.RequestServices.GetService(typeof(IPasswordValidator<User>)) as IPasswordValidator<User>;
+                var _passwordHasher =
+                    HttpContext.RequestServices.GetService(typeof(IPasswordHasher<User>)) as IPasswordHasher<User>;
+
+                IdentityResult result =
+                    await _passwordValidator.ValidateAsync(_userManager, user, cpm.NewPassword);
+                if (result.Succeeded)
+                {
+                    user.PasswordHash = _passwordHasher.HashPassword(user, cpm.NewPassword);
+                    await _userManager.UpdateAsync(user);
+                }
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return NoContent();
+        }
+
+      
 
 
 

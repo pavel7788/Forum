@@ -9,8 +9,8 @@ namespace Business.Models
     public class CommentModel
     {
         public int Id { get; set; }
-        public string Info { get; set; }
-        public DateTime Date { get; set; }
+        public string Content {get; set; }
+        public DateTime PublishDate { get; set; }
         public int PostId { get; set; }
         public virtual string Title { get; set; }
         public string UserId { get; set; }
