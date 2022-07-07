@@ -54,7 +54,8 @@ namespace WebApi.Controllers
                     access_token = token,
                     id = user.Id,
                     email = user.Email,
-                    role = roles[0]
+                    role = roles[0],
+                    isBanned = user.IsBanned
                 });
             }
             return Unauthorized();
@@ -87,14 +88,14 @@ namespace WebApi.Controllers
             return Ok();
         }
 
-        // POST: api/auth/profile/change_password
-        [Route("auth/profile/{id}")]
-        [HttpPut]
-        public async Task<ActionResult> ChangePassword(string id, [FromBody] ChangePasswordModel cpm)
+        // POST: api/auth/profile/1
+        [Route("profile/{id}")]
+        [HttpPost]
+        public async Task<ActionResult> ChangePassword([FromRoute] string id, [FromBody] ChangePasswordModel cpm)
         {
 
             if (cpm.NewPassword != cpm.ConfirmPassword)
-                return BadRequest();    
+                return BadRequest();            
 
             try
             {
@@ -115,7 +116,7 @@ namespace WebApi.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return NotFound(e.Message);
             }
             return NoContent();
         }

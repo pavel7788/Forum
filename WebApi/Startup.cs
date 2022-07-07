@@ -159,7 +159,7 @@ namespace WebApi
         private async static Task InitRoles(IServiceProvider serviceProvider)
         {
             var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "Admin", "User", "Moderator", "BannedUser" };
+            string[] roleNames = { "Admin", "User", "Moderator"};
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)

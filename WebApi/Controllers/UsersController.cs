@@ -41,16 +41,16 @@ namespace WebApi.Controllers
         {
             try
             {
-                //выдает ошибку циклической ссылки так
-                await _userService.GetByIdWithDetailsAsync(id);
-                //await _userManager.FindByIdAsync(id);
+                //выдает ошибку циклической ссылки!!!
+                //await _userService.GetByIdWithDetailsAsync(id);
+                await _userManager.FindByIdAsync(id);
             }
             catch (Exception e)
             {
                 return NotFound(e.Message);
             }
-            return Ok(_userService.GetByIdWithDetailsAsync(id));
-            //return Ok(await _userManager.FindByIdAsync(id));
+            //return Ok(_userService.GetByIdWithDetailsAsync(id));
+            return Ok(await _userManager.FindByIdAsync(id));
         }
         // POST: api/users
         [HttpPost]
@@ -106,21 +106,26 @@ namespace WebApi.Controllers
             }
             return Ok(await _userManager.DeleteAsync(user));
         }
-        // GET: api/users/1/roles
-        [HttpGet("{id}/roles")]
-        public async Task<ActionResult> GetRolesByUserIdAsync(string id)
+        // GET: api/users/1/role
+        [HttpGet("{id}/role")]
+        public async Task<ActionResult> GetRoleByUserIdAsync(string id)
         {
             User user;
+            List<string> roleNames = new List<string>();
             try
             {
                 user = await _userManager.FindByIdAsync(id);
                 var userRoles = await _userManager.GetRolesAsync(user);
+
+                foreach (var role in userRoles)
+                    roleNames.Add(role.ToString());
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
             }
-            return Ok(await _userManager.GetRolesAsync(user));
+            //return Ok(await _userManager.GetRolesAsync(user));
+            return Ok(roleNames[0]);
         }
 
         // GET: api/users/1/posts
@@ -137,6 +142,31 @@ namespace WebApi.Controllers
             return Ok(await _userService.GetCommentsWithDetailsInUserPostAsync(userId, postId));
         }
 
+        // PUT: api/users/1/ban
+        [HttpPut("{id}/ban")]
+        public async Task<ActionResult> Ban(string id)
+        {
+            User user;
+            try
+            {
+                user = await _userManager.FindByIdAsync(id);
+
+                var userRoles = await _userManager.GetRolesAsync(user);
+                if (userRoles.Contains("Admin") && AdminCount == 1)
+                    return Forbid();
+
+                if (user.IsBanned == true)
+                    user.IsBanned = false;
+                else if (user.IsBanned == false)
+                    user.IsBanned = true;
+                await _userManager.UpdateAsync(user);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+            return Ok();         
+        }
 
 
         private async Task<int> GetAdminCount ()

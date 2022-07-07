@@ -25,7 +25,7 @@ namespace WebApi.Controllers
         {
             _roleManager = roleManager;
             _userManager = userManager;
-            _baseRoles = new string[] { "Admin", "User", "BannedUser" };
+            _baseRoles = new string[] { "Admin", "User" };
         }
 
         // GET: api/roles
