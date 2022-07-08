@@ -12,6 +12,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -45,7 +46,10 @@ namespace WebApi.Controllers
                 if (!await _userManager.CheckPasswordAsync(user, request.Password))
                     return Unauthorized();
 
-                var roles = await _userManager.GetRolesAsync(user);
+                var userRoles = await _userManager.GetRolesAsync(user);
+                bool isAdmin = false;
+                if (userRoles.Contains("Admin"))
+                    isAdmin = true;
 
                 var token = await GenerateJWT(user);
 
@@ -54,9 +58,9 @@ namespace WebApi.Controllers
                     access_token = token,
                     id = user.Id,
                     email = user.Email,
-                    role = roles[0],
-                    isBanned = user.IsBanned
-                });
+                    isBanned = user.IsBanned,
+                    isAdmin = isAdmin
+                }); 
             }
             return Unauthorized();
         }
@@ -79,7 +83,12 @@ namespace WebApi.Controllers
                     Email = request.Email
                 };
                 if ((await _userManager.CreateAsync(addUser, request.Password)).Succeeded)
+                {
                     await _userManager.AddToRoleAsync(addUser, "User");
+                    await _userManager.AddToRoleAsync(addUser, "Client");
+                    addUser.UserRoles = "User, Client";
+                }
+                    
             }
             catch (Exception e)
             {

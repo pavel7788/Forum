@@ -8,6 +8,7 @@ namespace Data.Entities
     public class User : IdentityUser
     {
         public bool IsBanned { get; set; } = false;
+        public string UserRoles { get; set; }
         public virtual ICollection<Post> Posts { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
 

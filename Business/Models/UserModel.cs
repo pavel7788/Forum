@@ -12,6 +12,7 @@ namespace Business.Models
         public string Id { get; set; }
         public string UserName { get; set; }
         public bool IsBanned { get; set; }
+        public string UserRoles { get; set; }
         public virtual ICollection<PostModel> Posts { get; set; }
         //public virtual ICollection<int> PostsIds { get; set; }
         public virtual ICollection<CommentModel> Comments { get; set; }

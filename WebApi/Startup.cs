@@ -159,7 +159,7 @@ namespace WebApi
         private async static Task InitRoles(IServiceProvider serviceProvider)
         {
             var RoleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "Admin", "User", "Moderator"};
+            string[] roleNames = { "Admin", "User", "AdvancedUser", "PowerUser", "Client", "SilverClient", "PlatinumClient"};
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)
@@ -185,7 +185,11 @@ namespace WebApi
             {
                 var createdUser = await UserManager.CreateAsync(admin, userPassw);
                 if (createdUser.Succeeded)
+                {
                     await UserManager.AddToRoleAsync(admin, "Admin");
+                    admin.UserRoles = "Admin";
+                }
+                    
             }
         }
 
@@ -206,7 +210,11 @@ namespace WebApi
                     };
                     var createdUser = await UserManager.CreateAsync(checkUser, userPassw);
                     if (createdUser.Succeeded)
+                    {
                         await UserManager.AddToRoleAsync(checkUser, "User");
+                        await UserManager.AddToRoleAsync(checkUser, "Client");
+                        checkUser.UserRoles = "User, Client";
+                    }                        
                 }
             }
         }
