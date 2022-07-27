@@ -1,0 +1,16 @@
+<mat-toolbar class="navbar">
+  <div>
+    <a [routerLink]="['/blog']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }">Blog</a>
+  </div>
+  <div>
+    <a [routerLink]="['/']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a [routerLink]="['/roles']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn && isAdmin'>Roles</a>
+    <a [routerLink]="['/users']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn && isAdmin'>Users</a>
+    <a [routerLink]="['/auth/login']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn !==true'>Login</a>
+    <a [routerLink]="['/auth/register']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn !==true'>Register</a>
+    <a [routerLink]="['/auth/profile', getUserId()]" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn'> Hello {{getUserName()}} </a>
+    <a [routerLink]="['']" routerLinkActive='active' [routerLinkActiveOptions]="{ exact: true }" *ngIf='isLoggedIn' (click)='logout()'>Logout</a>
+  </div>
+</mat-toolbar>
+
+

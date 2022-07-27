@@ -1,0 +1,17 @@
+<mat-card>
+  <mat-form-field class="auth-form-field">
+    <mat-label>Email</mat-label>
+    <input type="email" matInput placeholder="user@email.com" #email />
+  </mat-form-field>
+  <br />
+  <mat-form-field class="auth-form-field">
+    <mat-label>Password</mat-label>
+    <input type="password" matInput #password />
+  </mat-form-field>
+  <br />
+  <button mat-flat-button color="primary" (click)='login(email.value, password.value)'>Login</button>
+</mat-card>
+
+
+
+

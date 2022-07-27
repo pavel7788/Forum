@@ -1,0 +1,79 @@
+<div class="container" *ngIf="post">
+  <br />
+  <h5>Post Details</h5>
+  <a [routerLink]="['/blog']" class="btn btn-success" style="margin: 5px">Back to Blog</a>
+  <form #form="ngForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label class="form-label">Id</label>
+      <input type="text" class="form-control" name="id" [(ngModel)]="post.id" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-control" name="title" [(ngModel)]="post.title" *ngIf="(isPostOwner || isAdmin)&&!isBanned">
+      <input type="text" class="form-control" name="title" [(ngModel)]="post.title" *ngIf="(isPostOwner !==true && isAdmin !==true)||isBanned" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Summary</label>
+      <input type="text" class="form-control" name="title" [(ngModel)]="post.summary" *ngIf="(isPostOwner || isAdmin)&&!isBanned">
+      <input type="text" class="form-control" name="title" [(ngModel)]="post.summary" *ngIf="(isPostOwner !==true && isAdmin !==true)||isBanned" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Content</label>
+      <textarea class="form-control" name="content" [(ngModel)]="post.content" style="height: 150px;"
+                *ngIf="(isPostOwner || isAdmin)&&!isBanned"></textarea>
+      <textarea class="form-control" name="content" [(ngModel)]="post.content" style="height: 150px;"
+                *ngIf="(isPostOwner !==true && isAdmin !==true)||isBanned" readonly></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Author</label>
+      <input class="form-control" name="author" [(ngModel)]="post.userName" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Publish Date</label>
+      <input class="form-control" name="publishDate" [(ngModel)]="post.publishDate" readonly>
+    </div>
+    <div *ngIf="(isPostOwner || isAdmin)&&!isBanned">
+      <button class="btn btn-primary" >Save</button>
+      <a class="btn btn-danger" (click)="deletePost()">Delete</a>
+    </div>
+  </form>
+</div>
+
+<br />
+
+<div class="container" *ngIf="postComments">
+  <h5> Comments</h5>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Content</th>
+        <th>Author</th>
+        <th>Publish Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let postComment of postComments">
+        <td> {{postComment.id}}</td>
+        <td *ngIf="(isPostCommentOwner(postComment) || isAdmin)&&!isBanned">
+          <input type="text" [(ngModel)]="postComment.content" />
+        </td>
+        <td *ngIf="(isPostCommentOwner(postComment) !==true && isAdmin !==true)||isBanned">
+          <input type="text" [(ngModel)]="postComment.content" style="border: none;" readonly />
+        </td>
+        <td> {{postComment.userName}}</td>
+        <td> {{postComment.publishDate}}</td>
+        <td>
+          <a class="btn btn-primary" (click)="updateComment(postComment)" *ngIf="(isPostCommentOwner(postComment) || isAdmin)&&!isBanned" style="margin-left: 5px">Save</a>
+          <a class="btn btn-danger" (click)="deleteComment(postComment)" *ngIf="(isPostCommentOwner(postComment) || isAdmin)&&!isBanned" style="margin-left: 5px">Delete</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <br/>
+  <form class="input-group mb-3" *ngIf="(isLoggedIn || isAdmin)&&(isPostOwner!==true)&&!isBanned">
+    <input type="text" class="form-control" name="commentContent" [(ngModel)]="addPostComment.content" placeholder="Input your comment here">
+    <button class="btn btn-outline-success" type="button" (click)='addComment()' >Add comment</button>
+  </form>
+</div>

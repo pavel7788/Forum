@@ -1,0 +1,28 @@
+<h3>Roles</h3>
+<div></div>
+<table class='table table-striped' aria-labelledby="tableLabel" *ngIf="roles">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Title</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let role of roles">
+      <td>{{ role.id }}</td>
+      <td (click)="populateForm(role)">{{ role.name }}</td>
+      <td><a (click)="deleteRole(role.id)"><i class="fa-solid fa-trash-can"></i></a></td>
+    </tr>
+  </tbody>
+</table>
+
+<form class="input-group mb-3" #form="ngForm" (ngSubmit)="onSubmit()">
+  <input [(ngModel)]="roleModel.name" type="text" class="form-control" #role_input name="role_input"
+         placeholder="Role title" aria-label="Role title" aria-describedby="basic-addon2">
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary" type="submit">Save</button>
+  </div>
+</form>
+
+

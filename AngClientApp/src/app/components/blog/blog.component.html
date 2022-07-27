@@ -1,0 +1,23 @@
+<div class="container" *ngIf="posts">
+  <div style="max-width: 500px; margin: 10px auto">
+    <a [routerLink]="['/blog/add']" class="btn btn-success" *ngIf='isLoggedIn && !isBanned'>Add post</a>
+  </div>
+
+  <div *ngFor="let post of posts" class="card" style="max-width: 500px; margin: 10px auto">
+    <div class="card-body">
+      <h5 class="card-title">{{post.title}}</h5>
+      <a> Author: {{post.userName}}</a>
+      <br />
+      <a> Published: {{post.publishDate}}</a>
+      <br />
+      <a> Summary: {{post.summary}}</a>
+      <br />
+      <a [routerLink]="['/blog', post.id]" class="btn btn-primary" style="margin: 10px auto"> View Post</a>
+    </div>
+
+  </div>  
+</div>
+
+
+
+
